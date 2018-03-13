@@ -5,8 +5,8 @@ import { toTitleCase } from '../../shared';
 import { JsonSchemaFormService } from '../../json-schema-form.service';
 
 @Component({
-  selector: 'flex-layout-section-widget',
-  template: `
+    selector: 'flex-layout-section-widget',
+    template: `
     <div *ngIf="containerType === 'div'"
       [class]="options?.htmlClass || ''"
       [class.expandable]="options?.expandable && !expanded"
@@ -28,8 +28,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
         [style.justify-content]="getFlexAttribute('justify-content')"
         [style.align-items]="getFlexAttribute('align-items')"
         [style.align-content]="getFlexAttribute('align-content')"
-        [fxLayout]="options?.fxLayout"
-        [fxLayoutWrap]="options?.fxLayoutWrap"
+        [fxLayout]="getFlexAttribute('layout')"
         [fxLayoutGap]="options?.fxLayoutGap"
         [fxLayoutAlign]="options?.fxLayoutAlign"
         [attr.fxFlexFill]="options?.fxLayoutAlign"></flex-layout-root-widget>
@@ -59,8 +58,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
         [style.justify-content]="getFlexAttribute('justify-content')"
         [style.align-items]="getFlexAttribute('align-items')"
         [style.align-content]="getFlexAttribute('align-content')"
-        [fxLayout]="options?.fxLayout"
-        [fxLayoutWrap]="options?.fxLayoutWrap"
+        [fxLayout]="getFlexAttribute('layout')"
         [fxLayoutGap]="options?.fxLayoutGap"
         [fxLayoutAlign]="options?.fxLayoutAlign"
         [attr.fxFlexFill]="options?.fxLayoutAlign"></flex-layout-root-widget>
@@ -93,8 +91,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
             [style.justify-content]="getFlexAttribute('justify-content')"
             [style.align-items]="getFlexAttribute('align-items')"
             [style.align-content]="getFlexAttribute('align-content')"
-            [fxLayout]="options?.fxLayout"
-            [fxLayoutWrap]="options?.fxLayoutWrap"
+            [fxLayout]="getFlexAttribute('layout')"
             [fxLayoutGap]="options?.fxLayoutGap"
             [fxLayoutAlign]="options?.fxLayoutAlign"
             [attr.fxFlexFill]="options?.fxLayoutAlign"></flex-layout-root-widget>
@@ -131,8 +128,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
           [style.justify-content]="getFlexAttribute('justify-content')"
           [style.align-items]="getFlexAttribute('align-items')"
           [style.align-content]="getFlexAttribute('align-content')"
-          [fxLayout]="options?.fxLayout"
-          [fxLayoutWrap]="options?.fxLayoutWrap"
+          [fxLayout]="getFlexAttribute('layout')"
           [fxLayoutGap]="options?.fxLayoutGap"
           [fxLayoutAlign]="options?.fxLayoutAlign"
           [attr.fxFlexFill]="options?.fxLayoutAlign"></flex-layout-root-widget>
@@ -140,7 +136,7 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
       <mat-error *ngIf="options?.showErrors && options?.errorMessage"
         [innerHTML]="options?.errorMessage"></mat-error>
     </mat-expansion-panel>`,
-  styles: [`
+    styles: [`
     fieldset { border: 0; margin: 0; padding: 0; }
     .legend { font-weight: bold; }
     .expandable > .legend:before { content: '▶'; padding-right: .3em; }
@@ -148,70 +144,74 @@ import { JsonSchemaFormService } from '../../json-schema-form.service';
   `],
 })
 export class FlexLayoutSectionComponent implements OnInit {
-  formControl: AbstractControl;
-  controlName: string;
-  controlValue: any;
-  controlDisabled = false;
-  boundControl = false;
-  options: any;
-  expanded = true;
-  containerType = 'div';
-  @Input() layoutNode: any;
-  @Input() layoutIndex: number[];
-  @Input() dataIndex: number[];
+    formControl: AbstractControl;
+    controlName: string;
+    controlValue: any;
+    controlDisabled = false;
+    boundControl = false;
+    options: any;
+    expanded = true;
+    containerType = 'div';
+    @Input() layoutNode: any;
+    @Input() layoutIndex: number[];
+    @Input() dataIndex: number[];
 
-  constructor(
-    private jsf: JsonSchemaFormService
-  ) { }
+    constructor(
+        private jsf: JsonSchemaFormService
+    ) { }
 
-  get sectionTitle() {
-    return this.options.notitle ? null : this.jsf.setItemTitle(this);
-  }
-
-  ngOnInit() {
-    this.jsf.initializeControl(this);
-    this.options = this.layoutNode.options || {};
-    this.expanded = typeof this.options.expanded === 'boolean' ?
-      this.options.expanded : !this.options.expandable;
-    switch (this.layoutNode.type) {
-      case 'section': case 'array': case 'fieldset': case 'advancedfieldset':
-      case 'authfieldset': case 'optionfieldset': case 'selectfieldset':
-        this.containerType = 'fieldset';
-      break;
-      case 'card':
-        this.containerType = 'card';
-      break;
-      case 'expansion-panel':
-        this.containerType = 'expansion-panel';
-      break;
-      default: // 'div', 'flex', 'tab', 'conditional', 'actions'
-        this.containerType = 'div';
+    get sectionTitle() {
+        return this.options.notitle ? null : this.jsf.setItemTitle(this);
     }
-  }
 
-  toggleExpanded() {
-    if (this.options.expandable) { this.expanded = !this.expanded; }
-  }
-
-  // Set attributes for flexbox container
-  // (child attributes are set in flex-layout-root.component)
-  getFlexAttribute(attribute: string) {
-    const flexActive: boolean =
-      this.layoutNode.type === 'flex' ||
-      !!this.options.displayFlex ||
-      this.options.display === 'flex';
-    // if (attribute !== 'flex' && !flexActive) { return null; }
-    switch (attribute) {
-      case 'is-flex':
-        return flexActive;
-      case 'display':
-        return flexActive ? 'flex' : 'initial';
-      case 'flex-direction': case 'flex-wrap':
-        const index = ['flex-direction', 'flex-wrap'].indexOf(attribute);
-        return (this.options['flex-flow'] || '').split(/\s+/)[index] ||
-          this.options[attribute] || ['column', 'nowrap'][index];
-      case 'justify-content': case 'align-items': case 'align-content':
-        return this.options[attribute];
+    ngOnInit() {
+        this.jsf.initializeControl(this);
+        this.options = this.layoutNode.options || {};
+        this.expanded = typeof this.options.expanded === 'boolean' ?
+            this.options.expanded : !this.options.expandable;
+        switch (this.layoutNode.type) {
+            case 'section': case 'array': case 'fieldset': case 'advancedfieldset':
+            case 'authfieldset': case 'optionfieldset': case 'selectfieldset':
+            this.containerType = 'fieldset';
+            break;
+            case 'card':
+                this.containerType = 'card';
+                break;
+            case 'expansion-panel':
+                this.containerType = 'expansion-panel';
+                break;
+            default: // 'div', 'flex', 'tab', 'conditional', 'actions'
+                this.containerType = 'div';
+        }
     }
-  }
+
+    toggleExpanded() {
+        if (this.options.expandable) { this.expanded = !this.expanded; }
+    }
+
+    // Set attributes for flexbox container
+    // (child attributes are set in flex-layout-root.component)
+    getFlexAttribute(attribute: string) {
+        const flexActive: boolean =
+            this.layoutNode.type === 'flex' ||
+            !!this.options.displayFlex ||
+            this.options.display === 'flex';
+        // if (attribute !== 'flex' && !flexActive) { return null; }
+        switch (attribute) {
+            case 'is-flex':
+                return flexActive;
+            case 'display':
+                return flexActive ? 'flex' : 'initial';
+            case 'flex-direction': case 'flex-wrap':
+            const index = ['flex-direction', 'flex-wrap'].indexOf(attribute);
+            return (this.options['flex-flow'] || '').split(/\s+/)[index] ||
+                this.options[attribute] || ['column', 'nowrap'][index];
+            case 'justify-content': case 'align-items': case 'align-content':
+            return this.options[attribute];
+            case 'layout':
+                return (this.options.fxLayout || 'row') +
+                    this.options.fxLayoutWrap ? ' ' : '' +
+                    this.options.fxLayoutWrap
+        }
+    }
 }
